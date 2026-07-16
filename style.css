@@ -86,6 +86,22 @@ h3 {
     vertical-align: middle;
 }
 
+.firebase-status-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+    max-width: 220px;
+}
+
+.firebase-status-text-details {
+    font-size: 0.78rem;
+    color: #64748b;
+    line-height: 1.2;
+    text-align: right;
+    max-width: 100%;
+}
+
 .input-group {
     display: flex;
     gap: 10px;
@@ -567,6 +583,7 @@ li {
     object-fit: cover;
     box-shadow: 0 6px 18px rgba(2, 6, 23, 0.08);
 }
+
 .page-header {
     display: flex;
     align-items: center;
@@ -574,24 +591,37 @@ li {
     justify-content: flex-start;
     margin-bottom: 10px;
 }
+
 .page-header h1 {
     font-size: 1.15rem;
     margin: 0;
     font-weight: 700;
 }
+
 .page-logo {
     width: 48px;
     height: 48px;
     border-radius: 8px;
     object-fit: cover;
-    box-shadow: 0 6px 18px rgba(2,6,23,0.08);
+    box-shadow: 0 6px 18px rgba(2, 6, 23, 0.08);
 }
 
 @media (max-width: 768px) {
-    .page-logo { width: 36px; height: 36px; }
-    .page-header { gap: 8px; justify-content: center; }
-    .page-header h1 { font-size: 1rem; }
+    .page-logo {
+        width: 36px;
+        height: 36px;
+    }
+
+    .page-header {
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .page-header h1 {
+        font-size: 1rem;
+    }
 }
+
 .nav-link {
     color: var(--secondary);
     text-decoration: none;
