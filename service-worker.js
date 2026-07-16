@@ -1,15 +1,14 @@
 const CACHE_NAME = 'tfball-cache-v1';
 const ASSETS = [
-    '/',
-    '/index.html',
-    '/offline.html',
-    '/style.css',
-    '/app.js',
-    '/authentification.js',
-    '/firebase-sync.js',
-    '/manifest.json',
-    '/icons/icon-192.svg',
-    '/icons/icon-512.svg'
+    './index.html',
+    './offline.html',
+    './style.css',
+    './app.js',
+    './authentification.js',
+    './firebase-sync.js',
+    './manifest.json',
+    './icons/icon-192.svg',
+    './icons/icon-512.svg'
 ];
 
 self.addEventListener('install', event => {
@@ -39,7 +38,7 @@ self.addEventListener('fetch', event => {
                 const copy = res.clone();
                 caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
                 return res;
-            }).catch(() => caches.match('/offline.html'))
+            }).catch(() => caches.match('./offline.html'))
         );
         return;
     }
