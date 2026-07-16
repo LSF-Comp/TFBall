@@ -1,0 +1,11 @@
+{
+    "name": "tfball",
+    "version": "1.0.0",
+    "description": "TFBall - gestion de tournois (PWA)",
+    "scripts": {
+        "gen-icons": "node scripts/gen-icons.js"
+    },
+    "devDependencies": {
+        "sharp": "^0.32.0"
+    }
+}

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Pro Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="icon" href="icons/icon-192.svg" sizes="192x192" type="image/svg+xml">
+    <!-- Social / favicon meta -->
+    <meta property="og:title" content="TFBall — Football Pro Manager">
+    <meta property="og:description"
+        content="Gérez vos tournois de football, suivez les scores et gérez les équipes avec synchronisation Firebase.">
+    <meta property="og:image" content="icons/icon-512.svg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="TFBall — Football Pro Manager">
+    <meta name="twitter:description"
+        content="Gérez vos tournois de football, suivez les scores et gérez les équipes avec synchronisation Firebase.">
+    <meta name="twitter:image" content="icons/icon-512.svg">
+    <!-- PNG fallback (data URI) to avoid 404 when PNG not generated yet -->
+    <link rel="icon"
+        href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR4nGNgYAAAAAMAASsJTYQAAAAASUVORK5CYII="
+        type="image/png" sizes="16x16">
+    <link rel="apple-touch-icon" href="icons/icon-192.svg">
+</head>
+
+<body>
+    <div class="app-container">
+
+        <!-- Header: navigation responsive -->
+        <header class="top-nav" id="top-nav">
+            <div class="nav-left">
+                <button class="hamburger" id="nav-toggle" aria-label="Ouvrir le menu">☰</button>
+                <h1 class="nav-title">Football Pro Manager</h1>
+            </div>
+            <nav class="nav-links" id="nav-links">
+                <a href="#" onclick="App.showHome(); return false;" class="nav-link" data-screen="home">Accueil</a>
+                <a href="#" onclick="App.showScreen('screen-tournaments'); return false;" class="nav-link"
+                    data-screen="screen-tournaments">Tournoi</a>
+                <a href="#" onclick="App.showScreen('screen-manager'); return false;" class="nav-link"
+                    data-screen="screen-manager">Manager</a>
+            </nav>
+            <div id="firebase-status-global" class="subtitle"
+                style="margin-left:18px;margin-top:6px; font-size:0.9rem;"></div>
+        </header>
+
+        <!-- ÉCRAN 0 : INSCRIPTION ORGANISATEUR -->
+        <div id="screen-auth" class="screen">
+            <h1 id="auth-title">📝 Inscription organisateur</h1>
+            <p class="subtitle">Créez votre compte organisateur et votre tournoi en quelques étapes.</p>
+
+            <div class="form-container">
+                <div class="input-group">
+                    <button class="btn-secondary" onclick="App.toggleOrganizerAuthMode()">Basculer vers
+                        Connexion</button>
+                </div>
+                <div class="input-group logo-group">
+                    <input type="text" id="organizer-first-name" placeholder="Prénom">
+                    <input type="text" id="organizer-last-name" placeholder="Nom">
+                    <input type="email" id="organizer-email" placeholder="Adresse Email">
+                    <input type="password" id="organizer-password" placeholder="Mot de passe">
+                    <input type="tel" id="organizer-phone" placeholder="Numéro de téléphone">
+                    <input type="text" id="organizer-tournament-name" placeholder="Nom du tournoi">
+                    <input type="text" id="organizer-tournament-logo" placeholder="Logo du tournoi (URL optionnelle)">
+                    <input type="text" id="organizer-tournament-locality" placeholder="Localité du tournoi">
+                    <select id="organizer-tournament-type">
+                        <option value="championship">Championnat</option>
+                        <option value="group_knockout">Phase de groupes + élimination directe</option>
+                    </select>
+                </div>
+                <button id="auth-submit-btn" class="btn-main" onclick="App.handleOrganizerRegistration()">Créer mon
+                    tournoi</button>
+            </div>
+        </div>
+
+        <!-- ÉCRAN 1 : CHOIX DU MODE & PERSONNALISATION -->
+        <div id="screen-mode" class="screen">
+
+            <div class="page-header">
+                <img src="icons/icon-192.svg" alt="Football Pro Manager" class="page-logo">
+                <h1> Football Pro Manager</h1>
+            </div>
+            <p class="subtitle">Créez un tournoi, configurez son format puis lancez la compétition</p>
+
+            <div class="tournament-custom-box">
+                <h3>🏷️ Infos du Tournoi</h3>
+                <div class="input-group logo-group">
+                    <input type="text" id="tournament-name-input"
+                        placeholder="Nom de la compétition (ex: Coupe de Fatick)"
+                        oninput="App.updateTournamentPreview()">
+                    <input type="text" id="tournament-logo-input" placeholder="URL de l'affiche / drapeau du tournoi"
+                        oninput="App.updateTournamentPreview()">
+                </div>
+                <div class="tournament-preview" id="tournament-preview">
+                    <img id="tournament-logo-preview" class="tournament-preview-logo hidden" alt="Logo du tournoi">
+                    <div>
+                        <h4 id="tournament-preview-name">Nom du tournoi non défini</h4>
+                        <p id="tournament-preview-subtitle">Entrez un nom et un logo pour personnaliser votre
+                            compétition.</p>
+                    </div>
+                </div>
+                <div class="tournament-confirm-box">
+                    <p id="tournament-error" class="inline-error hidden"></p>
+                    <p class="subtitle" style="margin-bottom: 12px;">Veuillez confirmer les informations du tournoi
+                        avant de lancer la compétition.</p>
+                    <button id="btn-confirm-tournament" class="btn-primary"
+                        onclick="App.confirmTournamentInfo()">Confirmer les infos du tournoi</button>
+                    <p id="tournament-confirmation" class="inline-success hidden">✅ Informations du tournoi confirmées.
+                    </p>
+                </div>
+            </div>
+
+            <div>
+                <div class="modes-grid">
+                    <button class="mode-card" onclick="App.selectMode('championship')">
+                        <h2>Format Championnat</h2>
+                        <p>Type Liga / Ligue 1. Matchs aller-retour, classement aux points.</p>
+                    </button>
+                    <button class="mode-card" onclick="App.selectMode('worldcup')">
+                        <h2>Format Tournoi</h2>
+                        <p>Type Coupe du Monde. Phase de poules puis élimination directe.</p>
+                    </button>
+                </div>
+                <p id="mode-instruction" class="subtitle">Vous devez choisir un format pour créer ou relancer votre
+                    tournoi.
+                </p>
+                <button id="mode-create-tournament" class="btn-primary hidden"
+                    onclick="App.createTournamentPrompt()">Créer
+                    un nouveau tournoi</button>
+                <p id="mode-error" class="inline-error hidden"></p>
+            </div>
+
+            <div id="invite-link-box" class="admin-assign-box hidden">
+                <h3>🔗 Lien d'inscription manager</h3>
+                <p class="subtitle" style="margin-bottom: 12px;">Copiez ce lien et partagez-le manuellement sur
+                    WhatsApp, Facebook ou autre réseau.</p>
+                <div class="input-group">
+                    <button class="btn-primary" onclick="App.generateInviteLink()">Générer le lien</button>
+                    <button class="btn-secondary" onclick="App.copyInviteLink()">Copier le lien</button>
+                </div>
+                <input type="text" id="invite-link-output" readonly placeholder="Aucun lien généré">
+                <p id="invite-message" class="inline-success hidden"></p>
+            </div>
+
+        </div>
+
+        <!-- ÉCRAN dédié : Création compte équipe -->
+        <div id="screen-manager-auth" class="screen hidden">
+            <h1 id="manager-auth-title">🔐 Rejoindre un tournoi</h1>
+            <p id="manager-auth-subtitle" class="subtitle">Créez votre compte équipe pour rejoindre le tournoi.</p>
+
+            <div class="form-container">
+                <div class="input-group logo-group">
+                    <input type="text" id="manager-full-name" placeholder="Nom du manager">
+                    <input type="text" id="manager-team-name-signup" placeholder="Nom de l'équipe">
+                    <input type="text" id="manager-team-logo-signup" placeholder="URL du logo de l'équipe">
+                    <input type="tel" id="manager-phone" placeholder="Numéro de téléphone">
+                    <input type="email" id="manager-email" placeholder="Email">
+                    <input type="password" id="manager-password" placeholder="Mot de passe (6 caractères minimum)">
+                </div>
+                <button id="manager-auth-submit-btn" class="btn-main" onclick="App.handleManagerRegistration()">Créer un
+                    compte équipe</button>
+                <p id="manager-auth-message" class="inline-error hidden"></p>
+                <p class="subtitle">Une fois inscrit, vous serez redirigé vers votre tableau de bord manager.</p>
+            </div>
+        </div>
+
+        <!-- ÉCRAN dédié : Tournois -->
+        <div id="screen-tournaments" class="screen hidden">
+            <h1>📚 Gestion des tournois</h1>
+            <p class="subtitle">Liste des tournois disponibles et création rapide.</p>
+            <div class="input-group">
+                <button class="btn-secondary" onclick="App.loadTournaments()">Actualiser</button>
+                <button class="btn-primary" onclick="App.createTournamentPrompt()">Créer un nouveau tournoi</button>
+                <select id="tournament-type-filter" onchange="App.filterTournamentsByType(this.value)">
+                    <option value="all">Tous les types</option>
+                    <option value="championship">Championnat</option>
+                    <option value="group_knockout">Phase de groupes + élimination</option>
+                </select>
+            </div>
+            <div id="tournaments-list-main" class="overview-list"></div>
+        </div>
+
+        <!-- ÉCRAN 1B : TOURNOI UTILISATEUR SANS TOURNOI -->
+        <div id="screen-dashb" class="screen hidden">
+            <h1>Bienvenue</h1>
+            <p class="subtitle">Aucun tournoi actif pour le moment. Consultez les tournois déjà créés par localité ou
+                créez le vôtre.</p>
+            <div class="overview-card">
+                <h3>Tournois disponibles</h3>
+                <p>Parcourez les compétitions créées par localité et lancez votre propre tournoi.</p>
+                <div class="input-group">
+                    <button class="btn-secondary" onclick="App.loadTournaments()">Actualiser</button>
+                    <button class="btn-primary" onclick="App.createTournamentPrompt()">Créer mon tournoi</button>
+                </div>
+                <div id="dashb-tournaments-list" class="overview-list"></div>
+            </div>
+        </div>
+
+        <!-- ÉCRAN 2A : MANAGER D'ÉQUIPE -->
+        <div id="screen-manager" class="screen hidden">
+            <h1>👥 Espace Manager d'équipe</h1>
+            <p class="subtitle">Gérez votre profil, votre équipe et rejoignez ou consultez un tournoi.</p>
+
+            <div class="manager-dashboard-grid">
+                <div class="overview-card">
+                    <h3>Mon équipe</h3>
+                    <p id="manager-team-name-display">Aucune équipe assignée</p>
+                    <p id="manager-role-display">Rôle : Manager d'équipe</p>
+                    <p id="manager-profile-status" class="subtitle"></p>
+                </div>
+                <div class="overview-card">
+                    <h3>Modifier votre profil</h3>
+                    <div class="input-group logo-group">
+                        <input type="text" id="manager-team-name" placeholder="Nom de votre équipe">
+                        <input type="text" id="manager-team-logo" placeholder="URL du logo de votre équipe">
+                    </div>
+                    <button class="btn-primary" onclick="App.saveManagerProfile()">Enregistrer mon profil</button>
+                    <p id="manager-profile-message" class="inline-success hidden">Votre profil a été sauvegardé.</p>
+                </div>
+            </div>
+
+            <div class="tournaments-join-box overview-card">
+                <h3>🔎 Rejoindre un tournoi</h3>
+                <div class="input-group">
+                    <button class="btn-secondary" onclick="App.loadTournaments()">Rechercher des tournois</button>
+                    <button class="btn-secondary" onclick="App.leaveCurrentTournament()">Quitter le tournoi</button>
+                </div>
+                <div id="manager-tournaments-list"></div>
+            </div>
+            <div id="manager-team-details" class="overview-card">
+                <h3>Statistiques de l'équipe</h3>
+                <div id="manager-team-stats"></div>
+            </div>
+
+            <div id="manager-match-list" class="overview-card">
+                <h3>Matchs de votre équipe</h3>
+                <div id="manager-matches-list"></div>
+            </div>
+        </div>
+
+        <!-- ÉCRAN 2 : CONFIGURATION ÉQUIPES -->
+        <div id="screen-setup" class="screen hidden">
+            <button class="btn-secondary" onclick="App.goToActiveTournament()">⬅️ Retour au tournoi</button>
+            <h2 id="setup-title">Configuration des Équipes</h2>
+            <p id="setup-mode-hint" class="subtitle">Ajoutez vos équipes pour démarrer la compétition.</p>
+
+            <div class="setup-layout">
+                <div class="setup-box">
+                    <h3>Ajouter une équipe</h3>
+                    <div class="input-group logo-group">
+                        <input type="text" id="team-name-input" placeholder="Nom de l'équipe">
+                        <input type="text" id="team-logo-input" placeholder="URL du Logo (Optionnel)">
+                        <button class="btn-primary" onclick="App.addTeam()">Ajouter</button>
+                    </div>
+                    <p id="team-error" class="inline-error hidden"></p>
+                    <ul id="teams-list"></ul>
+                </div>
+            </div>
+            <button id="btn-launch" class="btn-main" disabled onclick="App.launchCompetition()">Créer la compétition
+                🚀</button>
+            <p id="launch-status" class="launch-status">Ajoutez au moins 4 équipes et sélectionnez un mode pour
+                démarrer.</p>
+        </div>
+
+        <!-- ÉCRAN 3 : TOURNOI CENTRAL -->
+        <div id="screen-dashboard" class="screen hidden">
+            <div class="tournament-banner">
+                <img id="view-tournament-logo" src="" class="tournament-banner-logo hidden" alt="Drapeau">
+                <h2 id="view-tournament-name">Mon Tournoi</h2>
+            </div>
+
+            <div class="dashboard-actions">
+                <button class="btn-secondary" onclick="App.goToActiveTournament()">🔄 Retour au tournoi</button>
+                <button class="btn-reset-top" onclick="App.resetApplication()">🗑️ Réinitialiser la compétition</button>
+            </div>
+
+            <nav class="tabs-nav">
+                <button class="tab-link active" onclick="App.switchTab('matches', event)">📅 Matchs</button>
+                <button class="tab-link" onclick="App.switchTab('overview', event)">🧾 Résumé</button>
+                <button class="tab-link" onclick="App.switchTab('standings', event)">📊 Classement</button>
+                <button class="tab-link" onclick="App.switchTab('bracket', event)" id="tab-link-bracket"
+                    style="display:none;">🏆 Phase Finale</button>
+                <button class="tab-link" onclick="App.switchTab('stats', event)">👟 Stats Joueurs</button>
+                <button class="tab-link" onclick="App.switchTab('media', event)">📰 Presse & Actu</button>
+            </nav>
+
+            <div id="tab-matches" class="tab-content"></div>
+            <div id="tab-overview" class="tab-content hidden"></div>
+            <div id="tab-standings" class="tab-content hidden"></div>
+            <div id="tab-bracket" class="tab-content hidden">
+                <div class="bracket-wrapper" id="bracket-container"></div>
+            </div>
+            <div id="tab-stats" class="tab-content hidden">
+                <div class="stats-layout">
+                    <div class="stats-box">
+                        <h3>⚽ Meilleurs Buteurs</h3>
+                        <ul id="scorers-list" class="stats-list"></ul>
+                    </div>
+                    <div class="stats-box">
+                        <h3>👟 Meilleurs Passeurs</h3>
+                        <ul id="assists-list" class="stats-list"></ul>
+                    </div>
+                </div>
+            </div>
+            <div id="tab-media" class="tab-content hidden">
+                <h2>📰 Le Quotidien du Tournoi</h2>
+                <p class="subtitle">Les dernières analyses et résumés de matchs.</p>
+                <div id="media-feed" class="media-feed-container"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Fenêtre Modale de Feuille de Match -->
+    <div id="match-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Feuille de Match</h2><span class="close-modal" onclick="App.closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="modal-score-setup">
+                    <div class="modal-team-block">
+                        <h3 id="modal-home-name">Domicile</h3><input type="number" id="modal-score-home" min="0"
+                            oninput="App.generateEventsForm()">
+                    </div>
+                    <div class="modal-vs">VS</div>
+                    <div class="modal-team-block">
+                        <h3 id="modal-away-name">Extérieur</h3><input type="number" id="modal-score-away" min="0"
+                            oninput="App.generateEventsForm()">
+                    </div>
+                </div>
+                <div id="modal-events-selectors"></div>
+            </div>
+            <div class="modal-footer"><button class="btn-secondary" onclick="App.closeModal()">Annuler</button><button
+                    class="btn-primary" onclick="App.saveMatchEvents()">Valider le match</button></div>
+        </div>
+    </div>
+
+    <!-- Modal de Félicitations Champion -->
+    <div id="champion-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="champion-modal-title">Félicitations</h2>
+                <span class="close-modal" onclick="App.closeChampionModal()">&times;</span>
+            </div>
+            <div class="modal-body" id="champion-modal-body">
+                <!-- Contenu dynamique -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="App.closeChampionModal()">Fermer</button>
+                <button class="share-btn share-fb" id="champion-share-fb">Partager Facebook</button>
+                <button class="share-btn share-tw" id="champion-share-tw">Partager X</button>
+                <button class="btn-primary" id="champion-share-btn">Copier & Partager</button>
+            </div>
+        </div>
+    </div>
+    <canvas id="confetti-canvas" class="hidden"></canvas>
+    <!-- Code applicatif principal -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="firebase-sync.js"></script>
+    <script>
+        window.TFBALL_FIREBASE_CONFIG = {
+            apiKey: "AIzaSyDMEsXWfu0X9y0C2Cvur0wO_FJMq8kfyiQ",
+            authDomain: "gestion-tournoi-foot.firebaseapp.com",
+            projectId: "gestion-tournoi-foot",
+            storageBucket: "gestion-tournoi-foot.firebasestorage.app",
+            messagingSenderId: "434944691951",
+            appId: "1:434944691951:web:71dfdf0bc108805a10951a",
+            measurementId: "G-PG1H848017"
+        };
+    </script>
+
+    <script src="app.js"></script>
+
+    <!-- Authentification locale sans serveur ni dépendance externe -->
+    <script src="authentification.js"></script>
+
+    <!-- Service Worker registration for PWA support -->
+    <script>
+        // Les Service Workers exigent le protocole http(s) ou localhost. Évite l'erreur en file://
+        if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+            window.addEventListener('load', function () {
+                // utiliser chemin absolu pour garantir la portée correcte
+                navigator.serviceWorker.register('/service-worker.js').then(function (reg) {
+                    console.log('Service worker enregistré.', reg);
+                }).catch(function (err) {
+                    console.warn('Échec enregistrement SW:', err);
+                });
+            });
+        } else {
+            console.warn('Service Worker non enregistré: page hors contexte sécurisé (file://). Servez via http(s) ou localhost pour activer SW.');
+        }
+    </script>
+
+    <footer class="site-footer">
+        <p>TFBall — Gestion de tournois footballistiques pour organisateurs et managers, de la création au match final.
+        </p>
+        <p>&copy; 2026 TFBall. Développé par Sarr Fantassin.</p>
+    </footer>
+</body>
+
+</html>
