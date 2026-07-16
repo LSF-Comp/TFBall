@@ -127,7 +127,8 @@ window.Auth = {
     },
 
     async logout() {
-        if (confirm("Voulez-vous vous déconnecter ?")) {
+        const ok = window.App && typeof window.App.showConfirm === 'function' ? await window.App.showConfirm("Voulez-vous vous déconnecter ?") : window.__orig_confirm ? window.__orig_confirm("Voulez-vous vous déconnecter ?") : false;
+        if (ok) {
             localStorage.removeItem(localCurrentUserKey);
             window.location.reload();
         }
