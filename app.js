@@ -102,12 +102,14 @@ window.App = {
     firebaseTournamentListenerUnsubscribe: null,
     lastFirebaseSyncAt: null,
     firebaseStatusMessage: 'Vérification Firebase…',
+    deferredPwaPrompt: null,
 
     init() {
         this.parseJoinQuery();
         this.loadFromLocalStorage();
         this.restoreOrganizerProfile();
         this.initFirebaseSync().catch(() => { });
+        this.setupPwaInstallButton();
         this.loadTournaments().then(async () => {
             if (this.pendingJoinTournamentId) {
                 await this.handleJoinLink();
@@ -116,6 +118,55 @@ window.App = {
                 this.showInitialScreen();
             }
         });
+    },
+
+    setupPwaInstallButton() {
+        window.addEventListener('beforeinstallprompt', (event) => {
+            event.preventDefault();
+            this.deferredPwaPrompt = event;
+            this.showInstallButton();
+        });
+
+        window.addEventListener('appinstalled', () => {
+            this.deferredPwaPrompt = null;
+            this.hideInstallButton();
+            console.log('PWA installée.');
+        });
+
+        const installBtn = document.getElementById('install-app-btn');
+        if (installBtn) {
+            installBtn.addEventListener('click', async () => {
+                await this.promptPwaInstall();
+            });
+        }
+    },
+
+    showInstallButton() {
+        const installBtn = document.getElementById('install-app-btn');
+        if (installBtn) {
+            installBtn.classList.remove('hidden');
+        }
+    },
+
+    hideInstallButton() {
+        const installBtn = document.getElementById('install-app-btn');
+        if (installBtn) {
+            installBtn.classList.add('hidden');
+        }
+    },
+
+    async promptPwaInstall() {
+        if (!this.deferredPwaPrompt) return;
+
+        this.deferredPwaPrompt.prompt();
+        const choiceResult = await this.deferredPwaPrompt.userChoice;
+        if (choiceResult.outcome === 'accepted') {
+            console.log('L’utilisateur a accepté l’installation PWA');
+        } else {
+            console.log('L’utilisateur a refusé l’installation PWA');
+        }
+        this.deferredPwaPrompt = null;
+        this.hideInstallButton();
     },
 
     isOrganizerUser() {
