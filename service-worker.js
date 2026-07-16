@@ -35,8 +35,13 @@ self.addEventListener('fetch', event => {
     if (req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html')) {
         event.respondWith(
             fetch(req).then(res => {
-                const copy = res.clone();
-                caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+                try {
+                    const copy = res.clone();
+                    caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+                } catch (err) {
+                    // Le clonage peut échouer si le body a déjà été consommé; éviter de bloquer la navigation
+                    console.warn('SW: impossible de cacher la réponse de navigation:', err);
+                }
                 return res;
             }).catch(() => caches.match('./offline.html'))
         );
@@ -46,7 +51,13 @@ self.addEventListener('fetch', event => {
     // Other assets: cache-first
     event.respondWith(
         caches.match(req).then(cached => cached || fetch(req).then(res => {
-            caches.open(CACHE_NAME).then(cache => cache.put(req, res.clone()));
+            try {
+                const copy = res.clone();
+                caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+            } catch (err) {
+                // Certaines réponses (opaque, body consommé) peuvent échouer au clonage
+                console.warn('SW: impossible de cacher la réponse:', err);
+            }
             return res;
         })).catch(() => { })
     );
