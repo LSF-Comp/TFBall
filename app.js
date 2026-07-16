@@ -110,6 +110,7 @@ window.App = {
         this.restoreOrganizerProfile();
         this.initFirebaseSync().catch(() => { });
         this.setupPwaInstallButton();
+        this.overrideNativeAlerts();
         this.loadTournaments().then(async () => {
             if (this.pendingJoinTournamentId) {
                 await this.handleJoinLink();
@@ -118,6 +119,50 @@ window.App = {
                 this.showInitialScreen();
             }
         });
+    },
+
+    overrideNativeAlerts() {
+        // Remplacer window.alert par une alerte modale non bloquante
+        try {
+            if (!window.__orig_alert__) window.__orig_alert__ = window.alert;
+            if (!window.__orig_confirm__) window.__orig_confirm__ = window.confirm;
+            const self = this;
+            window.alert = function (msg) {
+                try { self.showAlert(String(msg)); } catch (e) { console.warn('alert override failed', e); }
+            };
+        } catch (e) {
+            console.warn('Impossible de remplacer window.alert', e);
+        }
+    },
+
+    showAlert(message, title = 'Message') {
+        const modal = document.getElementById('app-alert-modal');
+        const msgEl = document.getElementById('app-alert-message');
+        const titleEl = document.getElementById('app-alert-title');
+        if (!modal || !msgEl) {
+            // Fallback to native alert
+            window.__orig_alert__ ? window.__orig_alert__(message) : console.log(message);
+            return Promise.resolve();
+        }
+        titleEl && (titleEl.textContent = title);
+        msgEl.textContent = typeof message === 'string' ? message : JSON.stringify(message);
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+        return new Promise((resolve) => {
+            // attach a one-time resolver to be called on close
+            modal._resolve = resolve;
+        });
+    },
+
+    closeAlertModal() {
+        const modal = document.getElementById('app-alert-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
+        modal.setAttribute('aria-hidden', 'true');
+        if (typeof modal._resolve === 'function') {
+            modal._resolve();
+            modal._resolve = null;
+        }
     },
 
     setupPwaInstallButton() {
@@ -136,9 +181,32 @@ window.App = {
         const installBtn = document.getElementById('install-app-btn');
         if (installBtn) {
             installBtn.addEventListener('click', async () => {
-                await this.promptPwaInstall();
+                if (this.deferredPwaPrompt) {
+                    await this.promptPwaInstall();
+                } else {
+                    // Pas de prompt natif disponible -> afficher instructions personnalisées
+                    this.showInstallModal();
+                }
             });
+            // Si aucun `beforeinstallprompt` n'est reçu, afficher quand même le bouton sur mobile
+            const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+            const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent || '');
+            if (!this.deferredPwaPrompt && isMobile && !isStandalone) {
+                this.showInstallButton();
+            }
         }
+    },
+
+    showInstallModal() {
+        const modal = document.getElementById('install-modal');
+        if (!modal) return;
+        modal.classList.remove('hidden');
+    },
+
+    hideInstallModal() {
+        const modal = document.getElementById('install-modal');
+        if (!modal) return;
+        modal.classList.add('hidden');
     },
 
     showInstallButton() {
@@ -167,6 +235,52 @@ window.App = {
         }
         this.deferredPwaPrompt = null;
         this.hideInstallButton();
+    },
+
+    // Confirmation modal (non bloquante, retourne Promise<boolean>)
+    showConfirm(message, title = 'Confirmer') {
+        const modal = document.getElementById('app-confirm-modal');
+        const msgEl = document.getElementById('app-confirm-message');
+        const titleEl = document.getElementById('app-confirm-title');
+        const okBtn = document.getElementById('app-confirm-ok');
+        const cancelBtn = document.getElementById('app-confirm-cancel');
+        if (!modal || !msgEl || !okBtn || !cancelBtn) {
+            return Promise.resolve(window.__orig_confirm ? window.__orig_confirm(message) : false);
+        }
+        titleEl && (titleEl.textContent = title);
+        msgEl.textContent = typeof message === 'string' ? message : JSON.stringify(message);
+        modal.classList.remove('hidden');
+        modal.setAttribute('aria-hidden', 'false');
+
+        return new Promise((resolve) => {
+            const cleanup = () => {
+                okBtn.removeEventListener('click', onOk);
+                cancelBtn.removeEventListener('click', onCancel);
+                modal.classList.add('hidden');
+                modal.setAttribute('aria-hidden', 'true');
+            };
+            const onOk = () => { cleanup(); resolve(true); };
+            const onCancel = () => { cleanup(); resolve(false); };
+            okBtn.addEventListener('click', onOk);
+            cancelBtn.addEventListener('click', onCancel);
+            // allow ESC to cancel
+            const onKey = (e) => { if (e.key === 'Escape') { onCancel(); window.removeEventListener('keydown', onKey); } };
+            window.addEventListener('keydown', onKey);
+            // expose cancel function for close-modal X
+            modal._cancel = onCancel;
+        });
+    },
+
+    cancelConfirm() {
+        const modal = document.getElementById('app-confirm-modal');
+        if (!modal) return;
+        if (typeof modal._cancel === 'function') {
+            modal._cancel();
+            modal._cancel = null;
+        } else {
+            modal.classList.add('hidden');
+            modal.setAttribute('aria-hidden', 'true');
+        }
     },
 
     isOrganizerUser() {
@@ -1092,7 +1206,7 @@ window.App = {
             return;
         }
 
-        const confirmed = confirm('Voulez-vous vraiment quitter ce tournoi ? Vous pourrez ensuite rejoindre un autre tournoi.');
+        const confirmed = await this.showConfirm('Voulez-vous vraiment quitter ce tournoi ? Vous pourrez ensuite rejoindre un autre tournoi.');
         if (!confirmed) return;
 
         const tournament = this.tournaments.find(t => t.id === this.activeTournamentId);
@@ -1205,7 +1319,7 @@ window.App = {
             return;
         }
 
-        const confirmed = confirm('Voulez-vous vraiment quitter ce tournoi ? Vous pourrez vous réintégrer plus tard avec une autre équipe.');
+        const confirmed = await this.showConfirm('Voulez-vous vraiment quitter ce tournoi ? Vous pourrez vous réintégrer plus tard avec une autre équipe.');
         if (!confirmed) return;
 
         const managerEmail = this.userProfile?.email || this.organizerProfile?.email || window.Auth?.currentUser?.email || null;
@@ -2511,21 +2625,21 @@ window.App = {
         });
     },
 
-    resetApplication() {
-        if (confirm("Réinitialiser l'application ?")) {
-            localStorage.removeItem('football_manager_save');
-            localStorage.removeItem('tfball-current-user');
-            if (window.indexedDB) {
-                try {
-                    const deleteReq = indexedDB.deleteDatabase('tfball-db');
-                    deleteReq.onsuccess = () => window.location.reload();
-                    deleteReq.onerror = () => window.location.reload();
-                } catch (e) {
-                    window.location.reload();
-                }
-            } else {
+    async resetApplication() {
+        const ok = await this.showConfirm("Réinitialiser l'application ?");
+        if (!ok) return;
+        localStorage.removeItem('football_manager_save');
+        localStorage.removeItem('tfball-current-user');
+        if (window.indexedDB) {
+            try {
+                const deleteReq = indexedDB.deleteDatabase('tfball-db');
+                deleteReq.onsuccess = () => window.location.reload();
+                deleteReq.onerror = () => window.location.reload();
+            } catch (e) {
                 window.location.reload();
             }
+        } else {
+            window.location.reload();
         }
     }
 }; // <-- CETTE ACCOLADE FERME SÉCURISÉMENT L'OBJET GLOBAL APP
