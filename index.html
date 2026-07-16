@@ -45,8 +45,11 @@
                 <a href="#" onclick="App.showScreen('screen-manager'); return false;" class="nav-link"
                     data-screen="screen-manager">Manager</a>
             </nav>
-            <div id="firebase-status-global" class="subtitle"
-                style="margin-left:18px;margin-top:6px; font-size:0.9rem;"></div>
+            <div class="firebase-status-wrapper"
+                style="margin-left:18px;margin-top:6px; font-size:0.9rem; text-align:right;">
+                <div id="firebase-status-global" class="subtitle"></div>
+                <div id="firebase-status-text" class="subtitle firebase-status-text-details"></div>
+            </div>
         </header>
 
         <!-- ÉCRAN 0 : INSCRIPTION ORGANISATEUR -->
@@ -388,8 +391,8 @@
         // Les Service Workers exigent le protocole http(s) ou localhost. Évite l'erreur en file://
         if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
             window.addEventListener('load', function () {
-                // utiliser chemin absolu pour garantir la portée correcte
-                navigator.serviceWorker.register('/service-worker.js').then(function (reg) {
+                // utiliser un chemin relatif pour GitHub Pages / project page
+                navigator.serviceWorker.register('./service-worker.js').then(function (reg) {
                     console.log('Service worker enregistré.', reg);
                 }).catch(function (err) {
                     console.warn('Échec enregistrement SW:', err);
