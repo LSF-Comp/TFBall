@@ -32,7 +32,25 @@ Ouvrez dans le navigateur:
 
 http://localhost:8080
 
+Ou consultez la version publiée sur GitHub Pages:
+
+https://lsf-comp.github.io/TFBall/
+
 (Vérifiez que `index.html` s'affiche; `file://` ne fonctionne pas avec Firebase ni Service Worker.)
+
+Version publiée en ligne
+------------------------
+- Accédez à la démo publique : https://lsf-comp.github.io/TFBall/
+- Utilisez la console du navigateur pour vérifier que le service worker est bien chargé depuis `/TFBall/service-worker.js`.
+- Si vous rencontrez des problèmes, videz le cache et rechargez avec `Ctrl+F5`.
+
+GitHub Pages
+------------
+- Le site est déployé comme une project page sous :
+  https://lsf-comp.github.io/TFBall/
+- Assurez-vous que les fichiers `index.html`, `service-worker.js`, `manifest.json`, `icons/`, et `offline.html` soient bien présents dans la branche `main`.
+- Si le service worker ne s’enregistre pas, forcez la suppression de l’ancien SW dans DevTools → Application → Service Workers → Unregister.
+- Pour un re-déploiement propre, utilisez `git push --force` uniquement si nécessaire après avoir nettoyé le cache du navigateur.
 
 Vérifier le Service Worker & PWA
 -------------------------------
