@@ -581,18 +581,7 @@ window.App = {
 
             if (firebase.auth && typeof firebase.auth === 'function') {
                 this.firebaseAuth = firebase.auth();
-                if (this.firebaseAuth && typeof this.firebaseAuth.signInAnonymously === 'function') {
-                    try {
-                        await this.firebaseAuth.signInAnonymously();
-                    } catch (authError) {
-                        console.info('Auth anonyme non disponible, synchronisation Firebase désactivée.', authError);
-                        this.firebaseEnabled = false;
-                        this.firebaseStore = null;
-                        this.firebaseAuth = null;
-                        this.updateFirebaseStatus('Mode local actif', 'info');
-                        return false;
-                    }
-                }
+                // Ne pas forcer l'authentification anonyme sur GitHub Pages ou lorsque le projet Firebase restreint cette opération.
             }
 
             await this.syncFromFirebase();
