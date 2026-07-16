@@ -48,7 +48,6 @@
             <div class="firebase-status-wrapper"
                 style="margin-left:18px;margin-top:6px; font-size:0.9rem; text-align:right;">
                 <div id="firebase-status-global" class="subtitle"></div>
-                <div id="firebase-status-text" class="subtitle firebase-status-text-details"></div>
             </div>
         </header>
 
@@ -368,8 +367,80 @@
         </div>
     </div>
     <canvas id="confetti-canvas" class="hidden"></canvas>
+
+    <!-- Modal d'installation PWA (fallback personnalisé) -->
+    <div id="install-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Installer l'application</h2>
+                <span class="close-modal" onclick="App.hideInstallModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="install-modal-body">Pour installer cette application, suivez les instructions ci-dessous selon
+                    votre appareil.</p>
+                <div class="install-modal-icons">
+                    <div class="install-modal-item">
+                        <svg class="install-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <path fill="#3DDC84"
+                                d="M7 2h10a1 1 0 0 1 1 1v18a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1zm5 20a1 1 0 1 0 0-2 1 1 0 0 0 0 2z" />
+                        </svg>
+                        <div class="install-modal-step"><strong>Android</strong>
+                            <div>Menu → Ajouter à l'écran d'accueil</div>
+                        </div>
+                    </div>
+                    <div class="install-modal-item">
+                        <svg class="install-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                            aria-hidden="true">
+                            <path fill="#000000"
+                                d="M17 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2zm-5 20a1 1 0 1 1 0-2 1 1 0 0 1 0 2z" />
+                            <path fill="#000000" d="M12 6.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7z" opacity="0.08" />
+                        </svg>
+                        <div class="install-modal-step"><strong>iOS</strong>
+                            <div>Tapez <em>Partager</em> → <strong>Ajouter à l'écran d'accueil</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="App.hideInstallModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal d'alerte personnalisée (remplace window.alert) -->
+    <div id="app-alert-modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="app-alert-title">Message</h2>
+                <span class="close-modal" onclick="App.closeAlertModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="app-alert-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" onclick="App.closeAlertModal()">OK</button>
+            </div>
+        </div>
+    </div>
     <!-- Code applicatif principal -->
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+
+    <!-- Modal de confirmation personnalisée -->
+    <div id="app-confirm-modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="app-confirm-title">Confirmer</h2>
+                <span class="close-modal" onclick="App.cancelConfirm()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p id="app-confirm-message"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" id="app-confirm-cancel">Annuler</button>
+                <button class="btn-primary" id="app-confirm-ok">OK</button>
+            </div>
+        </div>
+    </div>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
     <script src="firebase-sync.js"></script>
