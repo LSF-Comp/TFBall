@@ -698,7 +698,7 @@ window.App = {
         // Update global compact icon in the header
         if (statusElGlobal) {
             const safeMsg = (message || '').replace(/"/g, "&quot;");
-            const titleAttr = safeMsg || 'Firebase';console.log(safeMsg)
+            const titleAttr = safeMsg || 'Firebase';
             const color = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#f59e0b';
             // inline shield SVG with a white check for a professional status icon
             statusElGlobal.innerHTML = `<svg class="firebase-status-svg" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" focusable="false" role="img" title="${titleAttr}">
