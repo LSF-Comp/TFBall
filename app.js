@@ -709,7 +709,7 @@ window.App = {
                 const textSpan = document.createElement('span');
                 textSpan.className = 'firebase-status-text';
                 textSpan.textContent = ' ' + message;
-                statusElGlobal.appendChild(textSpan);
+                //statusElGlobal.appendChild(textSpan);
             }
         }
     },
